@@ -5,7 +5,6 @@ namespace App\Controller;
 use DateTime;
 use Exception;
 use App\Dto\Mark as MarkDto;
-use App\Entity\Mark as MarkEntity;
 use App\Factory\Mark as MarkFactory;
 use App\Repository\Mark as MarkRepository;
 use App\Controller\RequestArgument\CreateMark as CreateMarkRequestArgument;
@@ -13,8 +12,7 @@ use App\Controller\RequestArgument\GetMarkById as GetMarkByIdRequestArgument;
 use App\Controller\RequestArgument\UpdateMark as UpdateMarkRequestArgument;
 use App\Controller\RequestArgument\DeleteMark as DeleteMarkRequestArgument;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
+use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -25,8 +23,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  *
  * @author Anton Kovalenko <CaribbeanLegend@mail.ru>
  */
-class MarksController extends ValidatableController
+class MarksController
 {
+    use ValidatableControllerTrait, ApiControllerTrait;
+
     /**
      * @var EntityManagerInterface
      */
@@ -42,12 +42,13 @@ class MarksController extends ValidatableController
      */
     private $repository;
 
-    public function __construct(EntityManagerInterface $em, ValidatorInterface $validator, MarkFactory $factory, MarkRepository $repository)
+    public function __construct(EntityManagerInterface $em, ValidatorInterface $validator, MarkFactory $factory, MarkRepository $repository, SerializerInterface $serializer)
     {
-        $this->em        = $em;
+        $this->em         = $em;
         $this->validator  = $validator;
         $this->factory    = $factory;
         $this->repository = $repository;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -62,14 +63,14 @@ class MarksController extends ValidatableController
         $this->em->persist($mark);
         $this->em->flush();
 
-        return new MarkDto(
+        return $this->jsonResponse(new MarkDto(
             $mark->getId(),
             $mark->getLatitude(),
             $mark->getLongitude(),
             $mark->getComment(),
             $mark->getPublicationDate(),
             $mark->getUpdatignDate()
-        );
+        ));
     }
 
     /**
@@ -82,17 +83,17 @@ class MarksController extends ValidatableController
         $mark = $this->repository->find($request->getId());
 
         if (empty($mark)) {
-            return null;
+            return $this->jsonResponse(null);
         }
 
-        return new MarkDto(
+        return $this->jsonResponse(new MarkDto(
             $mark->getId(),
             $mark->getLatitude(),
             $mark->getLongitude(),
             $mark->getComment(),
             $mark->getPublicationDate(),
             $mark->getUpdatignDate()
-        );
+        ));
     }
 
     /**
@@ -100,7 +101,7 @@ class MarksController extends ValidatableController
      */
     public function getList()
     {
-        return new JsonResponse($this->repository->findAll());
+        return $this->jsonResponse($this->repository->findAll());
     }
 
     /**
@@ -115,21 +116,21 @@ class MarksController extends ValidatableController
         }
 
         $mark->setLatitude($request->getLatitude());
-        $mark->setLatitude($request->getLongitude());
-        $mark->setLatitude($request->getComment());
-        $mark->setUpdatingDate((new DateTime())->format(DateTime::W3C));
+        $mark->setLongitude($request->getLongitude());
+        $mark->setComment($request->getComment());
+        $mark->setUpdatingDate(new DateTime());
 
         $this->em->persist($mark);
         $this->em->flush();
 
-        return new MarkDto(
+        return $this->jsonResponse(new MarkDto(
             $mark->getId(),
             $mark->getLatitude(),
             $mark->getLongitude(),
             $mark->getComment(),
             $mark->getPublicationDate(),
             $mark->getUpdatignDate()
-        );
+        ));
     }
 
     /**
@@ -142,12 +143,12 @@ class MarksController extends ValidatableController
         $mark = $this->repository->find($request->getId());
 
         if (!$mark) {
-            return false;
+            return $this->jsonResponse(false);
         }
 
         $this->em->remove($mark);
         $this->em->flush();
 
-        return true;
+        return $this->jsonResponse(true);
     }
 }

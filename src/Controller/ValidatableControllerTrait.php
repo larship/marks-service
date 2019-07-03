@@ -6,14 +6,14 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Exception;
 
 /**
- * Базовый контроллер для валидации запросов
+ * Трэйт для валидации запросов
  *
  * @author Anton Kovalenko <CaribbeanLegend@mail.ru>
  */
-class ValidatableController
+trait ValidatableControllerTrait
 {
     /**
-     * @var ValidatorInterface $validator
+     * @var ValidatorInterface
      */
     protected $validator;
 
