@@ -1,6 +1,12 @@
 {
     "type": "project",
     "license": "proprietary",
+    "authors": [
+        {
+            "name": "Anton Kovalenko",
+            "email": "CaribbeanLegend@mail.ru"
+        }
+    ],
     "require": {
         "php": "^7.2",
         "ext-ctype": "*",
