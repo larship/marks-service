@@ -2,153 +2,96 @@
 
 namespace App\Controller;
 
-use DateTime;
-use Exception;
-use App\Dto\Mark as MarkDto;
 use App\Factory\Mark as MarkFactory;
-use App\Repository\Mark as MarkRepository;
+use App\Service\Mark as MarkService;
 use App\Controller\RequestArgument\CreateMark as CreateMarkRequestArgument;
 use App\Controller\RequestArgument\GetMarkById as GetMarkByIdRequestArgument;
 use App\Controller\RequestArgument\UpdateMark as UpdateMarkRequestArgument;
 use App\Controller\RequestArgument\DeleteMark as DeleteMarkRequestArgument;
-use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-/**
- * Контроллер метод карты
- *
- * @Route("/")
- *
- * @author Anton Kovalenko <CaribbeanLegend@mail.ru>
- */
 class MarksController
 {
-    use ValidatableControllerTrait, ApiControllerTrait;
+    use ValidatableControllerTrait;
 
-    /**
-     * @var EntityManagerInterface
-     */
-    private $em;
+    protected SerializerInterface $serializer;
 
-    /**
-     * @var MarkFactory
-     */
-    private $factory;
+    private MarkService $markService;
 
-    /**
-     * @var MarkRepository
-     */
-    private $repository;
+    private MarkFactory $markFactory;
 
-    public function __construct(EntityManagerInterface $em, ValidatorInterface $validator, MarkFactory $factory, MarkRepository $repository, SerializerInterface $serializer)
+    public function __construct(SerializerInterface $serializer, MarkService $markService, MarkFactory $markFactory)
     {
-        $this->em         = $em;
-        $this->validator  = $validator;
-        $this->factory    = $factory;
-        $this->repository = $repository;
         $this->serializer = $serializer;
+        $this->markService = $markService;
+        $this->markFactory = $markFactory;
     }
 
-    /**
-     * @Route("/create", name="mark_create")
-     */
-    public function create(CreateMarkRequestArgument $request)
+    #[Route("/create", "mark_create")]
+    public function create(CreateMarkRequestArgument $request): JsonResponse
     {
         $this->validate($request);
 
-        $mark = $this->factory->createFromRequest($request);
+        $markDto = $this->markFactory->createDTO(
+            null,
+            $request->getLatitude(),
+            $request->getLongitude(),
+            $request->getComment(),
+            new \DateTimeImmutable(),
+            new \DateTimeImmutable()
+        );
+        $this->markService->saveMark($markDto);
 
-        $this->em->persist($mark);
-        $this->em->flush();
-
-        return $this->jsonResponse(new MarkDto(
-            $mark->getId(),
-            $mark->getLatitude(),
-            $mark->getLongitude(),
-            $mark->getComment(),
-            $mark->getPublicationDate(),
-            $mark->getUpdatignDate()
-        ));
+        return $this->jsonResponse($markDto);
     }
 
-    /**
-     * @Route("/get-by-id", name="mark_get_by_id")
-     */
-    public function getById(GetMarkByIdRequestArgument $request)
+    #[Route("/get-by-id", "mark_get_by_id")]
+    public function getById(GetMarkByIdRequestArgument $request): JsonResponse
     {
         $this->validate($request);
 
-        $mark = $this->repository->find($request->getId());
+        $markDto = $this->markService->findMark($request->getId());
 
-        if (empty($mark)) {
-            return $this->jsonResponse(null);
-        }
-
-        return $this->jsonResponse(new MarkDto(
-            $mark->getId(),
-            $mark->getLatitude(),
-            $mark->getLongitude(),
-            $mark->getComment(),
-            $mark->getPublicationDate(),
-            $mark->getUpdatignDate()
-        ));
+        return $this->jsonResponse($markDto);
     }
 
-    /**
-     * @Route("/get-list", name="mark_get_list")
-     */
-    public function getList()
+    #[Route("/get-list", "mark_get_list")]
+    public function getList(): JsonResponse
     {
-        return $this->jsonResponse($this->repository->findAll());
+        return $this->jsonResponse($this->markService->findAll());
     }
 
-    /**
-     * @Route("/update", name="mark_update")
-     */
-    public function update(UpdateMarkRequestArgument $request)
+    #[Route("/update", "mark_update")]
+    public function update(UpdateMarkRequestArgument $request): JsonResponse
     {
         $this->validate($request);
 
-        if (null === $mark = $this->repository->find($request->getId())) {
-            throw new Exception('Can\'t find mark with uid="' . $request->getId() . '"');
-        }
+        $markDto = $this->markFactory->createDTO(
+            $request->getId(),
+            $request->getLatitude(),
+            $request->getLongitude(),
+            $request->getComment()
+        );
 
-        $mark->setLatitude($request->getLatitude());
-        $mark->setLongitude($request->getLongitude());
-        $mark->setComment($request->getComment());
-        $mark->setUpdatingDate(new DateTime());
+        $this->markService->updateMark($markDto);
 
-        $this->em->persist($mark);
-        $this->em->flush();
-
-        return $this->jsonResponse(new MarkDto(
-            $mark->getId(),
-            $mark->getLatitude(),
-            $mark->getLongitude(),
-            $mark->getComment(),
-            $mark->getPublicationDate(),
-            $mark->getUpdatignDate()
-        ));
+        return $this->jsonResponse($markDto);
     }
 
-    /**
-     * @Route("/delete", name="mark_delete")
-     */
-    public function delete(DeleteMarkRequestArgument $request)
+    #[Route("/delete", "mark_delete")]
+    public function delete(DeleteMarkRequestArgument $request): JsonResponse
     {
         $this->validate($request);
 
-        $mark = $this->repository->find($request->getId());
+        $status = $this->markService->deleteMark($request->getId());
 
-        if (!$mark) {
-            return $this->jsonResponse(false);
-        }
+        return $this->jsonResponse($status);
+    }
 
-        $this->em->remove($mark);
-        $this->em->flush();
-
-        return $this->jsonResponse(true);
+    private function jsonResponse($data): JsonResponse
+    {
+        return new JsonResponse($this->serializer->serialize($data, 'json'), 200, [], true);
     }
 }

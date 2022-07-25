@@ -2,58 +2,32 @@
 
 namespace App\Entity;
 
-use DateTime;
+use DateTimeImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity(repositoryClass="App\Repository\Mark")
- */
+#[ORM\Entity(repositoryClass: "App\Repository\Mark")]
 class Mark
 {
-    /**
-     * Идентификатор метки
-     *
-     * @ORM\Id()
-     * @ORM\Column(type="uuid", unique=true, options={"comment": "Идентификатор метки"})
-     * @ORM\GeneratedValue(strategy="CUSTOM")
-     * @ORM\CustomIdGenerator(class="Ramsey\Uuid\Doctrine\UuidGenerator")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: "uuid", unique: true, options: ["comment" => "Идентификатор метки"])]
+    #[ORM\GeneratedValue(strategy: "CUSTOM")]
+    #[ORM\CustomIdGenerator(class: "Ramsey\Uuid\Doctrine\UuidGenerator")]
+    private string $id;
 
-    /**
-     * Широта, на которой установлена метка
-     *
-     * @ORM\Column(type="decimal", precision=9, scale=6, options={"comment": "Широта, на которой установлена метка"})
-     */
-    private $latitude;
+    #[ORM\Column(type: "decimal", precision: 9, scale: 6, options: ["comment" => "Широта, на которой установлена метка"])]
+    private string $latitude;
 
-    /**
-     * Долгота, на которой установлена метка
-     *
-     * @ORM\Column(type="decimal", precision=9, scale=6, options={"comment": "Долгота, на которой установлена метка"})
-     */
-    private $longitude;
+    #[ORM\Column(type: "decimal", precision: 9, scale: 6, options: ["comment" => "Долгота, на которой установлена метка"])]
+    private string $longitude;
 
-    /**
-     * Комментарий, оставленный к метке
-     *
-     * @ORM\Column(type="text", options={"comment": "Комментарий, оставленный к метке"})
-     */
-    private $comment;
+    #[ORM\Column(type: "text", options: ["comment" => "Комментарий, оставленный к метке"])]
+    private string $comment;
 
-    /**
-     * Дата публикации метки
-     *
-     * @ORM\Column(type="datetime", options={"comment": "Дата публикации метки"})
-     */
-    private $publicationDate;
+    #[ORM\Column(type: "datetime", options: ["comment" => "Дата публикации метки"])]
+    private DateTimeImmutable $publicationDate;
 
-    /**
-     * Дата обновления метки
-     *
-     * @ORM\Column(type="datetime", options={"comment": "Дата обновления метки"})
-     */
-    private $updatingDate;
+    #[ORM\Column(type: "datetime", options: ["comment" => "Дата обновления метки"])]
+    private DateTimeImmutable $updatingDate;
 
     public function getId(): string
     {
@@ -65,7 +39,7 @@ class Mark
         return $this->latitude;
     }
 
-    public function setLatitude(string $latitude)
+    public function setLatitude(string $latitude): void
     {
         $this->latitude = $latitude;
     }
@@ -75,7 +49,7 @@ class Mark
         return $this->longitude;
     }
 
-    public function setLongitude(string $longitude)
+    public function setLongitude(string $longitude): void
     {
         $this->longitude = $longitude;
     }
@@ -85,27 +59,27 @@ class Mark
         return $this->comment;
     }
 
-    public function setComment(string $comment)
+    public function setComment(string $comment): void
     {
         $this->comment = $comment;
     }
 
-    public function getPublicationDate(): DateTime
+    public function getPublicationDate(): DateTimeImmutable
     {
         return $this->publicationDate;
     }
 
-    public function setPublicationDate(DateTime $publicationDate)
+    public function setPublicationDate(DateTimeImmutable $publicationDate): void
     {
         $this->publicationDate = $publicationDate;
     }
 
-    public function getUpdatignDate(): DateTime
+    public function getUpdatignDate(): DateTimeImmutable
     {
         return $this->updatingDate;
     }
 
-    public function setUpdatingDate(DateTime $updatingDate)
+    public function setUpdatingDate(DateTimeImmutable $updatingDate): void
     {
         $this->updatingDate = $updatingDate;
     }

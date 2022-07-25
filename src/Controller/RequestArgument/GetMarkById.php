@@ -7,25 +7,14 @@ namespace App\Controller\RequestArgument;
 use JMS\Serializer\Annotation as JMS;
 use Symfony\Component\Validator\Constraints as Assert;
 
-/**
- * @JMS\ExclusionPolicy("all")
- *
- * @author Anton Kovalenko <CaribbeanLegend@mail.ru>
- */
+#[JMS\ExclusionPolicy(JMS\ExclusionPolicy::ALL)]
 class GetMarkById
 {
-    /**
-     * @JMS\Expose()
-     * @JMS\Type("string")
-     * @Assert\NotNull(message="The value is required")
-     */
-    private $id;
+    #[JMS\Expose]
+    #[JMS\Type("string")]
+    #[Assert\NotNull(message: "The value is required")]
+    private string $id;
 
-    /**
-     * Получить идентификатор метки
-     *
-     * @return string
-     */
     public function getId(): string
     {
         return $this->id;

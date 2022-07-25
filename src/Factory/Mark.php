@@ -2,37 +2,46 @@
 
 namespace App\Factory;
 
-use DateTime;
+use DateTimeImmutable;
 use App\Entity\Mark as MarkEntity;
-use App\Controller\RequestArgument\CreateMark as CreateMarkRequestArgument;
+use App\DTO\Mark as MarkDTO;
 
-/**
- * Фабрика для создания меток карты
- *
- * @package App\Factory
- *
- * @author Anton Kovalenko <17798@7733.ru>
- */
 class Mark
 {
-    /**
-     * Создаёт сущность MarkEntity из данных запроса
-     *
-     * @param CreateMarkRequestArgument $request Данные запроса
-     *
-     * @return MarkEntity
-     */
-    function createFromRequest(CreateMarkRequestArgument $request)
+    public function createEntityFromDTO(MarkDTO $markDto): MarkEntity
     {
         $mark = new MarkEntity();
-        $mark->setLatitude($request->getLatitude());
-        $mark->setLongitude($request->getLongitude());
-        $mark->setComment($request->getComment());
-//        $mark->setPublicationDate((new DateTime())->format(DateTime::W3C));
-//        $mark->setUpdatingDate((new DateTime())->format(DateTime::W3C));
-        $mark->setPublicationDate(new DateTime());
-        $mark->setUpdatingDate(new DateTime());
+        $mark->setLatitude($markDto->latitude);
+        $mark->setLongitude($markDto->longitude);
+        $mark->setComment($markDto->comment);
+        $mark->setPublicationDate(new DateTimeImmutable());
+        $mark->setUpdatingDate(new DateTimeImmutable());
 
         return $mark;
+    }
+
+    public function createDTO(string $id, string $latitude, string $longitude, string $comment,
+        ?DateTimeImmutable $publicationDate = null, ?DateTimeImmutable $updatingDate = null): MarkDTO
+    {
+        return new MarkDto(
+            $id,
+            $latitude,
+            $longitude,
+            $comment,
+            $publicationDate,
+            $updatingDate
+        );
+    }
+
+    public function createDTOFromEntity(MarkEntity $markEntity): MarkDTO
+    {
+        return new MarkDto(
+            $markEntity->getId(),
+            $markEntity->getLatitude(),
+            $markEntity->getLongitude(),
+            $markEntity->getComment(),
+            $markEntity->getPublicationDate(),
+            $markEntity->getUpdatignDate()
+        );
     }
 }

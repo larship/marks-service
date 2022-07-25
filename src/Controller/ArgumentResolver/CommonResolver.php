@@ -10,6 +10,7 @@ use JMS\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ArgumentValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
+use Generator;
 
 class CommonResolver implements ArgumentValueResolverInterface
 {
@@ -27,7 +28,7 @@ class CommonResolver implements ArgumentValueResolverInterface
         $this->serializer = $serializer;
     }
 
-    public function supports(Request $request, ArgumentMetadata $argument)
+    public function supports(Request $request, ArgumentMetadata $argument): bool
     {
         if (!in_array($argument->getType(), $this->supports)) {
             return false;
@@ -36,8 +37,8 @@ class CommonResolver implements ArgumentValueResolverInterface
         return true;
     }
 
-    public function resolve(Request $request, ArgumentMetadata $argument)
+    public function resolve(Request $request, ArgumentMetadata $argument): Generator
     {
-        yield  $this->serializer->deserialize($request->getContent(), $argument->getType(), 'json');
+        yield $this->serializer->deserialize($request->getContent(), $argument->getType(), 'json');
     }
 }
